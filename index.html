@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Analzyer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="code-checker.js"></script>
+    
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header */
+        .main-header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .sub-header {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        
+        /* Sections */
+        section {
+            margin-bottom: 2rem;
+        }
+        
+        h2, h3 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        /* Card styling */
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: white;
+        }
+        
+        /* Form elements */
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 1rem;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .radio-group input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+        
+        /* Button styling */
+        button {
+            background-color: #5846f6;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 300px;
+            margin: 1rem auto;
+            display: block;
+        }
+        
+        button:hover {
+            background-color: #4937e0;
+        }
+        
+        /* Checkbox styling */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+        
+        /* Slider */
+        .slider-container {
+            margin: 1rem 0;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .slider {
+            width: 100%;
+        }
+        
+        /* Results section */
+        .results {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .metric-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #5846f6;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .code-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .code-block {
+            background-color: #f8f9fe;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        
+        /* Suggestions */
+        .suggestion {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #5846f6;
+        }
+        
+        .suggestion-header {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .priority-high {
+            color: #F44336;
+        }
+        
+        .priority-medium {
+            color: #FF9800;
+        }
+        
+        .priority-low {
+            color: #4CAF50;
+        }
+        
+        .suggestion-content {
+            display: none;
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+        }
+        
+        /* Features grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Steps */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .step-container {
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            background-color: #5846f6;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Tips */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .tip-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .tip-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tip-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: #666;
+            border-top: 1px solid #eee;
+            margin-top: 2rem;
+        }
+        
+        /* Utilities */
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .hidden { display: none; }
+        
+        /* File upload styling */
+        .file-upload {
+            display: none;
+        }
+        
+        .file-upload-label {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #f8f9fe;
+            color: #5846f6;
+            border: 1px dashed #5846f6;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+        
+        .file-upload-label:hover {
+            background-color: #f0f0ff;
+        }
+        
+        .file-name {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 1rem auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #5846f6;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .code-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1 class="main-header">AI Code Analyzer</h1>
+            <p class="sub-header">Analyze your code for bugs, security vulnerabilities, and performance issues using AI.</p>
+        </header>
+        
+        <!-- Main Form -->
+        <section class="card">
+            <h2>Code Analysis</h2>
+            
+            <form id="code-form">
+                <!-- Input Method Selection -->
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="input-method" value="paste" checked>
+                        Paste code
+                    </label>
+                    <label>
+                        <input type="radio" name="input-method" value="upload">
+                        Upload file
+                    </label>
+                </div>
+                
+                <!-- Code Input -->
+                <div id="paste-container">
+                    <label for="code-input">Paste your code here:</label>
+                    <textarea id="code-input" name="code-input" placeholder="Enter your code here..."></textarea>
+                </div>
+                
+                <div id="upload-container" class="hidden">
+                    <label for="file-upload" class="file-upload-label">Click to upload a file</label>
+                    <input type="file" id="file-upload" class="file-upload" accept=".py,.js,.java,.cpp,.go,.rb,.php,.swift,.ts,.rs,.txt">
+                    <div id="file-name" class="file-name"></div>
+                    <div id="file-preview" class="code-block hidden">
+                        <pre id="file-preview-content"></pre>
+                    </div>
+                </div>
+                
+                <!-- Language Selection -->
+                <label for="language">Programming language:</label>
+                <select id="language" name="language">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="go">Go</option>
+                    <option value="ruby">Ruby</option>
+                    <option value="php">PHP</option>
+                    <option value="swift">Swift</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="rust">Rust</option>
+                </select>
+                
+                <!-- Check Preferences -->
+                <label>Check preferences:</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-bugs" name="preferences" value="bugs" checked>
+                        <label for="check-bugs">Bugs</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-security" name="preferences" value="security" checked>
+                        <label for="check-security">Security</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-performance" name="preferences" value="performance" checked>
+                        <label for="check-performance">Performance</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="check-best-practices" name="preferences" value="best-practices" checked>
+                        <label for="check-best-practices">Best Practices</label>
+                    </div>
+                </div>
+                
+                <!-- Thoroughness Slider -->
+                <div class="slider-container">
+                    <label for="thoroughness">Thoroughness:</label>
+                    <div class="slider-labels">
+                        <span>Less thorough</span>
+                        <span>More thorough</span>
+                    </div>
+                    <input type="range" id="thoroughness" name="thoroughness" min="1" max="5" value="3" class="slider">
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" id="analyze-button">🔍 Generate</button>
+                <div id="spinner" class="spinner"></div>
+            </form>
+        </section>
+        
+        <!-- Results Section (initially hidden) -->
+        <section id="results" class="results">
+            <h2>📊 Analysis Results</h2>
+            
+            <!-- Metrics -->
+            <div class="metrics">
+                <div class="metric-container">
+                    <div class="metric-value" id="quality-score">-/10</div>
+                    <div class="metric-label">Quality Score</div>
+                </div>
+                
+                <div class="metric-container">
+                    <div class="metric-value" id="bugs-count">-</div>
+                    <div class="metric-label">Bugs Found</div>
+                </div>
+                
+                <div class="metric-container">
+                    <div class="metric-value" id="security-count">-</div>
+                    <div class="metric-label">Security Issues</div>
+                </div>
+                
+                <div class="metric-container">
+                    <div class="metric-value" id="performance-count">-</div>
+                    <div class="metric-label">Performance Issues</div>
+                </div>
+            </div>
+            
+            <!-- Code Comparison -->
+            <div class="code-comparison">
+                <div>
+                    <h3>📄 Original Code</h3>
+                    <div class="code-block">
+                        <pre id="original-code"></pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>✅ Fixed Code</h3>
+                    <div class="code-block">
+                        <pre id="fixed-code"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Issues and Recommendations -->
+            <h3>🔍 Issues & Recommendations</h3>
+            <div id="suggestions-container">
+                <!-- Suggestions will be added here dynamically -->
+            </div>
+            
+            <!-- Summary -->
+            <h3>📝 Summary</h3>
+            <div class="card" id="summary">
+                <!-- Summary will be added here -->
+            </div>
+        </section>
+        
+        <!-- Why Choose Section -->
+        <section>
+            <h2>Why Choose Our AI Code Checker?</h2>
+            <p>Get comprehensive code analysis powered by advanced AI to improve your code quality and security.</p>
+            
+            <div class="features-grid">
+                <div class="feature-container">
+                    <p>✓ <strong>Instant detection</strong> of potential bugs and security vulnerabilities</p>
+                </div>
+                
+                <div class="feature-container">
+                    <p>✓ <strong>Performance optimization</strong> suggestions based on best practices</p>
+                </div>
+                
+                <div class="feature-container">
+                    <p>✓ <strong>Clear explanations</strong> and recommendations for improvements</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Who Can Benefit Section -->
+        <section>
+            <h2>Who Can Benefit From Our AI Code Checker?</h2>
+            <p>Our tool is designed to help developers of all levels ensure their code meets quality standards.</p>
+            
+            <div class="features-grid">
+                <div class="feature-container">
+                    <h3>👨‍💻 Software Developers</h3>
+                    <p>Developers looking to improve code quality and catch potential issues early.</p>
+                </div>
+                
+                <div class="feature-container">
+                    <h3>🎓 Students</h3>
+                    <p>Programming students who want to learn from AI-powered code analysis and suggestions.</p>
+                </div>
+                
+                <div class="feature-container">
+                    <h3>👥 Tech Teams</h3>
+                    <p>Development teams seeking to maintain consistent code quality standards.</p>
+                </div>
+                
+                <div class="feature-container">
+                    <h3>🔒 Security Engineers</h3>
+                    <p>Security professionals checking code for potential vulnerabilities.</p>
+                </div>
+                
+                <div class="feature-container">
+                    <h3>🚀 Startups</h3>
+                    <p>Early-stage companies wanting to ensure their codebase is stable and secure.</p>
+                </div>
+                
+                <div class="feature-container">
+                    <h3>📋 Code Reviewers</h3>
+                    <p>Reviewers looking for an automated first pass at code analysis.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- How It Works Section -->
+        <section>
+            <h2>How Our AI Code Checker Works</h2>
+            <p>Get instant code analysis in three simple steps:</p>
+            
+            <div class="steps">
+                <div class="step-container">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Submit Your Code</div>
+                        <p>Paste your code snippet and select the programming language and analysis preferences.</p>
+                    </div>
+                </div>
+                
+                <div class="step-container">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">AI Analysis</div>
+                        <p>Our advanced AI model analyzes your code for bugs, security issues, and performance optimizations.</p>
+                    </div>
+                </div>
+                
+                <div class="step-container">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Review Results</div>
+                        <p>Receive detailed feedback with specific recommendations for improving your code.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Key Features Section -->
+        <section>
+            <h2>Key Features of Our AI Code Checker</h2>
+            
+            <div class="features-grid">
+                <div class="feature-container">
+                    <div class="feature-title">🐞 Bug Detection</div>
+                    <div class="feature-description">Identify potential bugs and logic errors before they cause problems in production.</div>
+                </div>
+                
+                <div class="feature-container">
+                    <div class="feature-title">⚡ Performance Optimization</div>
+                    <div class="feature-description">Get suggestions for improving code performance and efficiency.</div>
+                </div>
+                
+                <div class="feature-container">
+                    <div class="feature-title">🔒 Security Analysis</div>
+                    <div class="feature-description">Detect security vulnerabilities and receive recommendations for secure coding practices.</div>
+                </div>
+                
+                <div class="feature-container">
+                    <div class="feature-title">✅ Best Practices</div>
+                    <div class="feature-description">Learn industry-standard best practices and coding conventions.</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Tips Section -->
+        <section>
+            <h2>Tips for Getting the Best Results</h2>
+            
+            <div class="tips-grid">
+                <div class="tip-container">
+                    <div class="tip-title">Provide complete code snippets</div>
+                    <div class="tip-description">Include all relevant code context to get more accurate analysis and recommendations.</div>
+                </div>
+                
+                <div class="tip-container">
+                    <div class="tip-title">Specify the correct language</div>
+                    <div class="tip-description">Ensure you select the correct programming language for language-specific analysis.</div>
+                </div>
+                
+                <div class="tip-container">
+                    <div class="tip-title">Use clear formatting</div>
+                    <div class="tip-description">Submit properly formatted code to receive more precise feedback and suggestions.</div>
+                </div>
+                
+                <div class="tip-container">
+                    <div class="tip-title">Check multiple aspects</div>
+                    <div class="tip-description">Select various check preferences to get comprehensive code analysis.</div>
+                </div>
+                
+                <div class="tip-container">
+                    <div class="tip-title">Review all suggestions</div>
+                    <div class="tip-description">Carefully consider each recommendation as they might reveal important improvements.</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 AI Code Checker | All rights reserved</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Input method toggle
+            const radioButtons = document.querySelectorAll('input[name="input-method"]');
+            const pasteContainer = document.getElementById('paste-container');
+            const uploadContainer = document.getElementById('upload-container');
+            
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'paste') {
+                        pasteContainer.classList.remove('hidden');
+                        uploadContainer.classList.add('hidden');
+                    } else {
+                        pasteContainer.classList.add('hidden');
+                        uploadContainer.classList.remove('hidden');
+                    }
+                });
+            });
+            
+            // File upload handling
+            const fileUpload = document.getElementById('file-upload');
+            const fileName = document.getElementById('file-name');
+            const filePreview = document.getElementById('file-preview');
+            const filePreviewContent = document.getElementById('file-preview-content');
+            
+            fileUpload.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    fileName.textContent = `Selected file: ${file.name}`;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+                        // Show preview of the first 500 characters
+                        filePreviewContent.textContent = content.length > 500 ? 
+                            content.substring(0, 500) + '...' : content;
+                        filePreview.classList.remove('hidden');
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            // Form submission
+            const codeForm = document.getElementById('code-form');
+            const resultsSection = document.getElementById('results');
+            const spinner = document.getElementById('spinner');
+            
+            codeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show spinner
+                spinner.style.display = 'block';
+                
+                // Get form data
+                const inputMethod = document.querySelector('input[name="input-method"]:checked').value;
+                let codeInput;
+                
+                if (inputMethod === 'paste') {
+                    codeInput = document.getElementById('code-input').value;
+                } else {
+                    const fileInput = document.getElementById('file-upload');
+                    if (fileInput.files && fileInput.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            codeInput = e.target.result;
+                            processAnalysis(codeInput);
+                        };
+                        reader.readAsText(fileInput.files[0]);
+                        return;
+                    } else {
+                        alert('Please select a file');
+                        spinner.style.display = 'none';
+                        return;
+                    }
+                }
+                
+                processAnalysis(codeInput);
+            });
+            
+            function processAnalysis(codeInput) {
+                const language = document.getElementById('language').value;
+                const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
+                    .map(checkbox => checkbox.value);
+                const thoroughness = document.getElementById('thoroughness').value;
+                
+                // Normally, this would be an API call to your backend
+                // For this example, we'll simulate a response
+                
+                setTimeout(() => {
+                    // Hide spinner
+                    spinner.style.display = 'none';
+                    
+                    // Mock response data
+                    const mockResponse = {
+                        overall_quality_score: 7,
+                        bugs: 3,
+                        security_vulnerabilities: 1,
+                        performance_issues: 2,
+                        fixed_code: codeInput.replace('// This is a bug', '// This bug was fixed'),
+                        suggestions: [
+                            {
+                                issue: "Potential security vulnerability in API key handling",
+                                recommendation: "Store API keys in environment variables and avoid hardcoding them.",
+                                impact: "Hardcoded API keys could be exposed in version control, leading to unauthorized access.",
+                                priority: "high"
+                            },
+                            {
+                                issue: "Inefficient data processing in loop",
+                                recommendation: "Consider using map/filter/reduce instead of traditional for loops for better performance.",
+                                impact: "Current implementation may lead to performance bottlenecks with large datasets.",
+                                priority: "medium"
+                            },
+                            {
+                                issue: "Missing error handling",
+                                recommendation: "Add try/catch blocks around API calls and file operations.",
+                                impact: "Lack of error handling could cause the application to crash unexpectedly.",
+                                priority: "medium"
+                            }
+                        ],
+                        summary: "The code has some issues that should be addressed. There's a security vulnerability with API key handling, some performance optimizations could be made, and error handling should be improved. Overall, the code structure is good but needs refinement in these areas."
+                    };
+                    
+                    // Update the results section with the response data
+                    displayResults(codeInput, mockResponse);
+                    
+                    // Show results section
+                    resultsSection.style.display = 'block';
+                    
+                    // Scroll to results
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                }, 2000);
+            }
+            
+            function displayResults(originalCode, results) {
+                // Update metrics
+                document.getElementById('quality-score').textContent = `${results.overall_quality_score}/10`;
+                document.getElementById('bugs-count').textContent = results.bugs;
+                document.getElementById('security-count').textContent = results.security_vulnerabilities;
+                document.getElementById('performance-count').textContent = results.performance_issues;
+                
+                // Update code comparison
+                document.getElementById('original-code').textContent = originalCode;
+                document.getElementById('fixed-code').textContent = results.fixed_code;
+                
+                // Update suggestions
+                const suggestionsContainer = document.getElementById('suggestions-container');
+                suggestionsContainer.innerHTML = '';
+                
+                if (results.suggestions && results.suggestions.length > 0) {
+                    results.suggestions.forEach((suggestion, index) => {
+                        const suggestionEl = document.createElement('div');
+                        suggestionEl.className = 'suggestion';
+                        suggestionEl.innerHTML = `
+                            <div class="suggestion-header" onclick="toggleSuggestion(${index})">
+                                ${index + 1}. ${suggestion.issue}
+                                <span class="priority-${suggestion.priority}">(${suggestion.priority})</span>
+                            </div>
+                            <div id="suggestion-content-${index}" class="suggestion-content">
+                                <p><strong>Recommendation:</strong> ${suggestion.recommendation}</p>
+                                <p><strong>Impact:</strong> ${suggestion.impact}</p>
+                            </div>
+                        `;
+                        suggestionsContainer.appendChild(suggestionEl);
+                    });
+                } else {
+                    suggestionsContainer.innerHTML = '<div class="card">No specific issues found in your code.</div>';
+                }
+                
+                // Update summary
+                document.getElementById('summary').innerHTML = `<p>${results.summary}</p>`;
+            }
+            
+            // Make toggleSuggestion function available globally
+            window.toggleSuggestion = function(index) {
+                const content = document.getElementById(`suggestion-content-${index}`);
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            };
+        });
+    </script>
+</body>
+</html>
+
